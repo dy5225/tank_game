@@ -1,6 +1,7 @@
 import pygame
 from ui.locals import *
 from ui.action import *
+import time
 
 
 class PlayerTank(Display, Move):
@@ -24,6 +25,12 @@ class PlayerTank(Display, Move):
         # width,height
         self.width = self.images[0].get_width()
         self.height = self.images[0].get_height()
+        # 飞机的子弹属性
+        self.bullets = []
+
+        # 开火时间间隔
+        self.__fire_start = 0
+        self.__fire_time = 0.4
 
     def display(self):
         image = None
@@ -35,8 +42,9 @@ class PlayerTank(Display, Move):
             image = self.images[2]
         elif self.direction == Direction.RIGHT:
             image = self.images[3]
-
         self.surface.blit(image, (self.x, self.y))
+        Bullet
+
 
     def move(self, direction):
         """移动"""
@@ -45,7 +53,7 @@ class PlayerTank(Display, Move):
             return
         '''==================== 换成了转方向+移动??????? ===================='''
 
-        if  self.direction != direction:
+        if self.direction != direction:
             self.direction = direction
 
 
@@ -70,8 +78,18 @@ class PlayerTank(Display, Move):
                     self.x = GAME_WIDTH - self.width
 
     def fire(self):
-        # TODO
-        pass
+
+        print("开火")
+        now = time.time()
+        if now - self.__fire_start < self.__fire_time:
+            return
+        self.__fire_start = now
+
+        bullet = Bullet(self.x, self.y, self.surface)
+        self.bullets.append(bullet)
+        for ele in self.bullets:
+            ele.display()
+
 
     def is_blocked(self, block):
         # 判断坦克和墙是否碰撞
@@ -179,3 +197,20 @@ class Grass(Display, Order):
 
     def get_order(self):
         return 100
+
+
+class Bullet:
+    def __init__(self, x, y, surface):
+        self.surface = surface
+        self.image = pygame.image.load('img/tankmissile.gif')
+        self.bullet_width = self.image.get_width()
+        self.bullet_height = self.image.get_height()
+        self.x = x + BLOCK / 2 - self.bullet_width / 2
+        self.y = y - BLOCK
+
+    def move(self):
+        '''子弹移动'''
+        self.y -= 1
+
+    def display(self):
+        self.surface.blit(self.image, (self.x, self.y))
