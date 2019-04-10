@@ -12,7 +12,6 @@ if __name__ == '__main__':
 
     # 窗体
     window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    print(type(window))
 
     pygame.display.set_caption("坦克大战")
 
@@ -21,9 +20,8 @@ if __name__ == '__main__':
     game = GamePage(window)
 
     while True:
-        #获取当前要打开页面的值
+        # 获取当前要打开页面的值
         current = getCurrent()
-
 
         # 判断页面
         page = None
@@ -34,7 +32,7 @@ if __name__ == '__main__':
 
         # 渲染页面
         page.graphic()
-        #刷新
+        # 刷新
         pygame.display.flip()
 
         events = pygame.event.get()

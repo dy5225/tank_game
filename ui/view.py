@@ -25,12 +25,12 @@ class PlayerTank(Display, Move):
         # width,height
         self.width = self.images[0].get_width()
         self.height = self.images[0].get_height()
-        # 飞机的子弹属性
+        # 坦克的子弹属性
         self.bullets = []
 
         # 开火时间间隔
         self.__fire_start = 0
-        self.__fire_time = 0.4
+        self.__fire_time = 0.2
 
     def display(self):
         image = None
@@ -43,8 +43,6 @@ class PlayerTank(Display, Move):
         elif self.direction == Direction.RIGHT:
             image = self.images[3]
         self.surface.blit(image, (self.x, self.y))
-        Bullet
-
 
     def move(self, direction):
         """移动"""
@@ -55,6 +53,8 @@ class PlayerTank(Display, Move):
 
         if self.direction != direction:
             self.direction = direction
+
+
 
 
 
@@ -77,19 +77,22 @@ class PlayerTank(Display, Move):
                 if self.x > GAME_WIDTH - self.width:
                     self.x = GAME_WIDTH - self.width
 
-    def fire(self):
+    def move_direction(self):
+        move_direction = self.direction
+        return move_direction
 
-        print("开火")
+    def fire(self, move_direction):
+        '''坦克开火'''
+        # 开火的方向
+        self.fire_direction = move_direction
+
         now = time.time()
         if now - self.__fire_start < self.__fire_time:
             return
         self.__fire_start = now
 
-        bullet = Bullet(self.x, self.y, self.surface)
+        bullet = Bullet(self.x, self.y, self.surface, self.fire_direction)
         self.bullets.append(bullet)
-        for ele in self.bullets:
-            ele.display()
-
 
     def is_blocked(self, block):
         # 判断坦克和墙是否碰撞
@@ -200,17 +203,53 @@ class Grass(Display, Order):
 
 
 class Bullet:
-    def __init__(self, x, y, surface):
+    def __init__(self, x, y, surface, fire_direction):
         self.surface = surface
         self.image = pygame.image.load('img/tankmissile.gif')
         self.bullet_width = self.image.get_width()
         self.bullet_height = self.image.get_height()
-        self.x = x + BLOCK / 2 - self.bullet_width / 2
-        self.y = y - BLOCK
+        self.fire_direction = fire_direction
+        self.x = x
+        self.y = y
 
     def move(self):
         '''子弹移动'''
-        self.y -= 1
+
+        #
+        self.__fire_speed = 3
+
+        #判断子弹发射方向
+        if self.fire_direction == Direction.UP:
+            self.y -= self.__fire_speed
+        elif self.fire_direction == Direction.DOWN:
+            self.y += self.__fire_speed
+        elif self.fire_direction == Direction.LEFT:
+            self.x -= self.__fire_speed
+        elif self.fire_direction == Direction.RIGHT:
+            self.x += self.__fire_speed
 
     def display(self):
-        self.surface.blit(self.image, (self.x, self.y))
+
+        # 当坦克方向上时开火
+        if self.fire_direction == Direction.UP:
+            x = self.x + BLOCK / 2 - self.bullet_width / 2
+            y = self.y - 15
+            self.surface.blit(self.image, (x, y))
+
+        # 坦克向下开火
+        elif self.fire_direction == Direction.DOWN:
+            x = self.x + BLOCK / 2 - self.bullet_width / 2
+            y = self.y + BLOCK
+            self.surface.blit(self.image, (x, y))
+
+        # 坦克向左
+        elif self.fire_direction == Direction.LEFT:
+            x = self.x - 15  # + BLOCK / 2 - self.bullet_width / 2
+            y = self.y + 20
+            self.surface.blit(self.image, (x, y))
+
+        # 坦克向右
+        elif self.fire_direction == Direction.RIGHT:
+            x = self.x + BLOCK
+            y = self.y + 20
+            self.surface.blit(self.image, (x, y))

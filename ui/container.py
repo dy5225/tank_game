@@ -69,6 +69,10 @@ class GameContainer:
                             # 移动的物体被阻塞的物体挡住了
                             break
 
+        for bullet in view.bullets:
+            bullet.display()
+            bullet.move()
+
     def keydown(self, key):
         """按下事件"""
         pass
@@ -86,7 +90,8 @@ class GameContainer:
         if keys[K_s]:
             self.player.move(Direction.DOWN)
         if keys[K_SPACE]:
-            self.player.fire()
+            move_direction = self.player.move_direction()
+            self.player.fire(move_direction)
 
 
 class InfoContainer:
