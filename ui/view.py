@@ -5,6 +5,7 @@ import time
 
 
 class PlayerTank(Display, Move):
+    bullets = []
 
     def __init__(self, **kwargs):
         self.x = kwargs["x"]
@@ -26,7 +27,6 @@ class PlayerTank(Display, Move):
         self.width = self.images[0].get_width()
         self.height = self.images[0].get_height()
         # 坦克的子弹属性
-        self.bullets = []
 
         # 开火时间间隔
         self.__fire_start = 0
@@ -92,7 +92,7 @@ class PlayerTank(Display, Move):
         self.__fire_start = now
 
         bullet = Bullet(self.x, self.y, self.surface, self.fire_direction)
-        self.bullets.append(bullet)
+        PlayerTank.bullets.append(bullet)
 
     def is_blocked(self, block):
         # 判断坦克和墙是否碰撞
@@ -202,23 +202,24 @@ class Grass(Display, Order):
         return 100
 
 
-class Bullet:
+class Bullet(Move):
     def __init__(self, x, y, surface, fire_direction):
         self.surface = surface
         self.image = pygame.image.load('img/tankmissile.gif')
         self.bullet_width = self.image.get_width()
         self.bullet_height = self.image.get_height()
         self.fire_direction = fire_direction
+        self.fire_bad_direction = None
         self.x = x
         self.y = y
 
     def move(self):
         '''子弹移动'''
 
-        #
+        # 子弹移动速度
         self.__fire_speed = 3
 
-        #判断子弹发射方向
+        # 判断子弹发射方向
         if self.fire_direction == Direction.UP:
             self.y -= self.__fire_speed
         elif self.fire_direction == Direction.DOWN:
@@ -253,3 +254,45 @@ class Bullet:
             x = self.x + BLOCK
             y = self.y + 20
             self.surface.blit(self.image, (x, y))
+
+    def is_blocked(self, block):
+        '''判断子弹与物体相撞'''
+
+        for bullet in PlayerTank.bullets:
+            if bullet.fire_direction == Direction.UP:
+                if bullet.y < 0:
+                    bullet.fire_bad_direction = bullet.fire_direction
+                    return True
+            elif bullet.fire_direction == Direction.DOWN:
+                if bullet.y > GAME_HEIGHT - bullet.bullet_height:
+                    bullet.fire_bad_direction = bullet.fire_direction
+                    return True
+            elif bullet.fire_direction == Direction.LEFT:
+                if bullet.x < 0:
+                    bullet.fire_bad_direction = bullet.fire_direction
+                    return True
+            elif bullet.fire_direction == Direction.RIGHT:
+                if bullet.x > GAME_WIDTH - bullet.bullet_width:
+                    bullet.fire_bad_direction = bullet.fire_direction
+                    return True
+
+            # 矩形和矩形的碰撞, 当前矩形    bullet.fire_direction
+            rect_self = pygame.Rect(bullet.x, bullet.y, bullet.bullet_width, bullet.bullet_height)
+            rect_wall = pygame.Rect(block.x, block.y, block.width, block.height)
+
+            collide = pygame.Rect.colliderect(rect_self, rect_wall)
+            if collide:
+                # TODO  如果发生了子弹碰撞，判断子弹与什么物体相撞???
+
+                # 如果发生了碰撞，说明当前方向是错误的
+                self.fire_bad_direction = bullet.fire_direction
+                PlayerTank.bullets.remove(bullet)
+                return True
+            else:
+                # 没有错误方向
+                self.fire_bad_direction = Direction.NONE
+                return False
+
+    def re_buller(self):
+        '''清空子弹'''
+        PlayerTank.bullets.clear()

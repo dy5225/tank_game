@@ -14,9 +14,6 @@ class GameContainer:
         self.surface = surface
         self.views = []
         # 飞机的子弹
-        self.bullets = []
-
-
 
         # 通过读文件来加载元素
         file = open("map/1.map", "r", encoding="utf-8")
@@ -34,14 +31,12 @@ class GameContainer:
                     self.views.append(Steel(surface=self.surface, x=x, y=y))
                 if text == "水":
                     self.views.append(Water(surface=self.surface, x=x, y=y))
-                # if text == "草":
-                #     self.views.append(Grass(surface=self.surface, x=x, y=y))
+                if text == "草":
+                    self.views.append(Grass(surface=self.surface, x=x, y=y))
                 if text == "主":
                     self.player = PlayerTank(surface=self.surface, x=x, y=y)
                     self.views.append(self.player)
         file.close()
-
-
 
     def __sort(self, view):
 
@@ -52,14 +47,22 @@ class GameContainer:
         # 清屏
         self.surface.fill((0x00, 0x00, 0x00))
 
+        #当子弹移动出屏幕，就将子弹清除掉
+        for bullet in list(PlayerTank.bullets):
+            if bullet.y < - bullet.bullet_height or bullet.y > GAME_HEIGHT or bullet.x < -bullet.bullet_width or bullet.x > GAME_WIDTH:
+                PlayerTank.bullets.remove(bullet)
+
+
+            bullet.display()
+            bullet.move()
+
         # 对列表进行排序，排序的标准
         self.views.sort(key=self.__sort)
 
         # 遍历列表，让所有的元素显示
         for view in self.views:
             view.display()
-
-
+        #坦克与障碍物
         for move in self.views:
             if isinstance(move, Move):
                 for block in self.views:
@@ -69,9 +72,18 @@ class GameContainer:
                             # 移动的物体被阻塞的物体挡住了
                             break
 
-        for bullet in view.bullets:
-            bullet.display()
-            bullet.move()
+        #子弹与障碍物
+        # TODO
+        for move_bullet in PlayerTank.bullets:
+            if isinstance(move_bullet, Move):
+                for block in self.views:
+                    if isinstance(block, Block):
+                        if move_bullet.is_blocked(block):
+                            break
+
+
+
+
 
     def keydown(self, key):
         """按下事件"""
