@@ -73,7 +73,6 @@ class GameContainer:
                             break
 
         #子弹与障碍物
-        # TODO
         for move_bullet in PlayerTank.bullets:
             if isinstance(move_bullet, Move):
                 for block in self.views:
